@@ -107,6 +107,20 @@ def test_main_prints_one_frame_when_the_text_is_wider_than_the_terminal(
     assert "wider than the terminal" in capsys.readouterr().err
 
 
+def test_main_prints_one_frame_when_the_text_contains_a_line_break(
+    monkeypatch, make_terminal, set_terminal_width, capsys
+):
+    # A carriage return only reaches the start of the last line, so animating
+    # multi-line text would scroll a fresh copy in on every frame.
+    terminal = make_terminal()
+    monkeypatch.setattr(sys, "stdout", terminal)
+    set_terminal_width(80)
+
+    assert main(["a\nb"]) == 0
+    assert HIDE_CURSOR not in terminal.getvalue()
+    assert "spans more than one line" in capsys.readouterr().err
+
+
 def test_main_counts_east_asian_characters_as_two_columns(
     monkeypatch, make_terminal, set_terminal_width, capsys
 ):

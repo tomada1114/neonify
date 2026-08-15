@@ -17,6 +17,8 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 WIDE_EAST_ASIAN_CLASSES = frozenset({"W", "F"})
+LINE_BREAKS = frozenset("\n\r\v\f\x1c\x1d\x1e\x85\u2028\u2029")
+"""Every character ``str.splitlines`` treats as ending a line."""
 
 
 def _display_width(text: str) -> int:
@@ -25,6 +27,20 @@ def _display_width(text: str) -> int:
         2 if unicodedata.east_asian_width(character) in WIDE_EAST_ASIAN_CLASSES else 1
         for character in text
     )
+
+
+def _unanimatable_reason(text: str) -> str | None:
+    """Return why *text* cannot be repainted in place, or ``None`` if it can.
+
+    Repainting relies on a carriage return, which only reaches the start of the
+    current line — so any text that occupies more than one line would scroll a
+    fresh copy of itself into the terminal on every frame.
+    """
+    if LINE_BREAKS.intersection(text):
+        return "the text spans more than one line"
+    if _display_width(text) >= shutil.get_terminal_size().columns:
+        return "the text is wider than the terminal"
+    return None
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -67,8 +83,9 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     Animating only makes sense on a terminal that stays put, so a redirected
     stdout gets a single coloured frame and ``NO_COLOR`` gets the bare text.
-    Text too wide for the terminal is treated the same way: it would wrap, and
-    repainting in place cannot reach a line that has scrolled.
+    Text that cannot stay on one line — because it is wider than the terminal,
+    or because it contains a line break — is treated the same way: repainting
+    in place cannot reach a line that has scrolled.
 
     Args:
         argv: Command-line arguments, defaulting to ``sys.argv[1:]``.
@@ -92,10 +109,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         stream.write(single_frame)
         return 0
 
-    if _display_width(args.text) >= shutil.get_terminal_size().columns:
+    reason = _unanimatable_reason(args.text)
+    if reason is not None:
         sys.stderr.write(
-            "neonify: the text is wider than the terminal, so it cannot be "
-            "animated in place; printing a single frame instead\n"
+            f"neonify: {reason}, so it cannot be animated in place; "
+            "printing a single frame instead\n"
         )
         stream.write(single_frame)
         return 0
