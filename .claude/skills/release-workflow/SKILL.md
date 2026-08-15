@@ -102,7 +102,7 @@ Then confirm both outputs:
 
 **Prerequisite:** PyPI Trusted Publishing must already be registered for this
 repository (owner, repo, workflow `release.yml`, environment `release`) as
-described in `TEMPLATE.md`. Without it the publish job fails.
+described in `CONTRIBUTING.md`. Without it the publish job fails.
 
 ## Notes
 
