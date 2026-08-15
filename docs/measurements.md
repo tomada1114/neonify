@@ -125,28 +125,38 @@ several were fitted against all seven measured pairs. None of them fits:
 
 | Model | Best parameter | RMS error | Worst channel |
 | --- | --- | --- | --- |
-| Mix towards white, sRGB | 36.5% | 6.5 | 16 |
-| Mix towards white, Oklab | 34.5% | 6.7 | 15 |
-| Mix towards white, linear light | 24.5% | 10.4 | 23 |
-| HSL lightness `+0.135` | — | 7.0 | 16 |
-| HSL lightness set to `0.758` | — | 7.4 | 13 |
-| HSV value `×1.24` | — | 28.1 | 54 |
-| Oklch lightness `+0.122`, chroma `×0.82` | — | 6.8 | 12 |
-| HSL lightness `+0.14`, saturation `×1.13` | — | 5.1 | 11 |
-| HSL lightness lerp `0.38`, saturation `×1.18` | — | 4.4 | 12 |
+| Mix towards white, sRGB | 36.7% | 7.0 | 16.3 |
+| Mix towards white, Oklab | 35.8% | 7.2 | 17.5 |
+| Mix towards white, linear light | 24.8% | 10.9 | 23.7 |
+| HSL lightness `+0.138` | — | 7.3 | 17.3 |
+| HSL lightness set to `0.762` | — | 7.9 | 14.7 |
+| HSV value `×1.25` | — | 28.6 | 56.0 |
+| Oklch lightness `+0.125`, chroma `×0.817` | — | 6.6 | 12.4 |
+| HSL lightness `+0.146`, saturation `×1.15` | — | 5.4 | 14.5 |
+| HSL lightness lerp `0.39`, saturation `×1.18` | — | 4.8 | 13.7 |
 
-Errors are in channel steps out of 255. Even the best two-parameter fit is still
-12 steps out on one colour, and every model gets the same thing wrong: the
-reference
-raises the dominant channel further than any of them predict, while lifting
-saturation rather than washing it out.
+Errors are in channel steps out of 255, taken over all 21 channels of the seven
+pairs, and each parameter is the one that minimises the RMS — so the numbers
+above recompute from `RAINBOW` alone.
+
+The three white-mix rows and the two HSL-lightness rows share one failure: every
+one of them under-predicts the dominant channel of all seven colours. The
+reference brightens a hue without washing it out, and lightening alone cannot do
+both. Letting saturation rise as well — the last two rows — cuts the RMS by
+about a third and still leaves one channel 14 steps out; refitting those two to
+minimise the worst channel rather than the RMS only brings it down to 9.
 
 !!! info "Mixing with white is HSL lightness interpolation"
 
-    The sRGB and HSL rows are not two results that happen to agree — they are
-    the same operation. Mixing a colour with white scales its chroma by `1 - w`
-    and closes the gap to full lightness by the same `w`, and those two effects
-    cancel exactly in the HSL saturation formula.
+    The sRGB row is not a separate family from the HSL rows: mixing a colour
+    with white in sRGB *is* lerping its HSL lightness towards 1 with the
+    saturation left alone. Mixing scales chroma by `1 - w` and closes the gap to
+    full lightness by the same `w`, and those two effects cancel exactly in the
+    HSL saturation formula — a lerp of `0.367` with saturation untouched
+    reproduces the sRGB row's 7.0 to the digit, which is why it has no row of
+    its own. The `+0.138` row is a genuinely different operation: an additive
+    shift moves every colour by the same amount, where the lerp moves the dark
+    ones further and the light ones less.
 
 So the reference almost certainly picks its lit colours by hand, and `neonify`
 stores them the same way, in `Hue.lit`.
@@ -166,8 +176,10 @@ to be chosen rather than measured:
 
 ## Reproducing the check
 
-The strongest available test is that frame 8 of the animation should reproduce
-the mid-shine screenshot exactly, since that screenshot is lossless:
+The strongest available test is that step 8 of the animation should reproduce
+the mid-shine screenshot exactly, since that screenshot is lossless. The step is
+`render_frame`'s own frame counter, which starts where the shine enters — the
+recording reaches that state at its frame 14:
 
 ```python
 import re

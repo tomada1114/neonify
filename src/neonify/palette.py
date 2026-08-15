@@ -5,8 +5,9 @@ colours and three of the lit ones from lossless screenshots, the rest from the
 recording, corrected for the constant bias the codec showed on the colours that
 appear in both. The lit colours are stored rather than derived, because no
 single lightening rule reproduces them — mixing towards white in sRGB, in
-linear light, in HSL and in Oklab each leave at least one channel off by more
-than a tenth of its range.
+linear light, in HSL and in Oklab each leave at least one channel thirteen steps
+out of 255 adrift, however the mix is weighted. ``docs/measurements.md`` has the
+fits.
 """
 
 from __future__ import annotations
