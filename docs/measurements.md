@@ -36,10 +36,10 @@ the animation asked for.
 
 ## The palette
 
-Characters are coloured by position, and the palette starts over every seven
-characters — which is why the `i` of `ultrathink` is the same red as its `u`.
-Each entry has two brightnesses: the colour the character rests at, and the
-colour it takes while the shine is over it.
+Characters are coloured by position, and in the reference the palette starts
+over every seven characters — which is why the `i` of `ultrathink` is the same
+red as its `u`. Each entry has two brightnesses: the colour the character rests
+at, and the colour it takes while the shine is over it.
 
 | # | Hue | Resting | Lit | Source of the lit colour |
 | --- | --- | --- | --- | --- |
@@ -50,6 +50,14 @@ colour it takes while the shine is over it.
 | 5 | 214° | `#76A0D7` | `#ADC7EB` | recording (corrected) |
 | 6 | 260° | `#9077C0` | `#BAADE2` | recording (corrected) |
 | 7 | 318° | `#C177AB` | `#E2ABCB` | screenshot (exact) |
+
+!!! note "Where `neonify` departs from the reference"
+    These seven entries are anchors rather than a repeating sequence.
+    `neonify` stretches them across whatever string it is given, so the ends
+    always land on hue 3° and hue 318°, and the positions in between are
+    blended from the two entries they fall between. A string of seven
+    characters reproduces the table exactly; anything longer gets intermediate
+    colours where the reference would start over.
 
 The resting colours are all exact: every one of them appears in the at-rest
 screenshot. Note how uneven their saturation is — the greens, purples and pinks

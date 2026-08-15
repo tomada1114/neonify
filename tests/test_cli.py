@@ -5,7 +5,7 @@ import sys
 
 import pytest
 
-from neonify import RAINBOW, SHINE_WIDTH, render_frame
+from neonify import RAINBOW, SHINE_WIDTH, gradient, render_frame
 from neonify.cli import DEFAULT_TEXT, main
 
 HIDE_CURSOR = "\x1b[?25l"
@@ -76,7 +76,7 @@ def test_main_once_prints_a_frame_with_the_shine_on_the_string(text, capsys):
     """The one frame a non-terminal gets has to show the shine, not the rest."""
     assert main(["--once", text]) == 0
     printed = capsys.readouterr().out
-    lit = sum(printed.count(hue.lit.foreground) for hue in RAINBOW)
+    lit = sum(printed.count(hue.lit.foreground) for hue in gradient(RAINBOW, len(text)))
 
     assert lit == min(len(text), SHINE_WIDTH)
 

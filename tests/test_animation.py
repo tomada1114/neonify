@@ -11,6 +11,7 @@ from neonify import (
     Color,
     GlowStyle,
     Hue,
+    gradient,
     render_frame,
 )
 
@@ -47,11 +48,11 @@ def _painted(text: str, step: int, style: GlowStyle | None = None) -> list[str]:
 
 def _lit_positions(text: str, step: int, style: GlowStyle | None = None) -> list[int]:
     """The positions painted in their lit colour on frame *step*."""
-    palette = (style if style is not None else GlowStyle()).palette
+    hues = gradient((style if style is not None else GlowStyle()).palette, len(text))
     return [
         position
         for position, color in enumerate(_painted(text, step, style))
-        if color == palette[position % len(palette)].lit.foreground
+        if color == hues[position].lit.foreground
     ]
 
 
@@ -64,18 +65,27 @@ def _resting(text: str) -> int:
     return _cycle(text) - 1
 
 
-def test_render_frame_gives_each_position_its_own_palette_color():
-    expected = [RAINBOW[index].base.foreground for index in range(3)]
+def test_render_frame_paints_the_ends_in_the_ends_of_the_palette():
+    """However long the text, it runs from the first colour to the last."""
+    painted = _painted(TEXT, _resting(TEXT))
+
+    assert painted[0] == RAINBOW[0].base.foreground
+    assert painted[-1] == RAINBOW[-1].base.foreground
+
+
+def test_render_frame_stretches_a_short_string_over_the_whole_palette():
+    """Three characters land on the two ends and the middle entry between them."""
+    expected = [RAINBOW[index].base.foreground for index in (0, 3, 6)]
 
     assert _painted("abc", _resting("abc")) == expected
 
 
-def test_render_frame_repeats_the_palette_once_it_runs_out():
+def test_render_frame_no_longer_starts_the_palette_over():
+    """A string longer than the palette gets intermediate colours, not repeats."""
     text = "a" * (len(RAINBOW) + 2)
     painted = _painted(text, _resting(text))
 
-    assert painted[len(RAINBOW)] == painted[0]
-    assert painted[len(RAINBOW) + 1] == painted[1]
+    assert len(set(painted)) == len(text)
 
 
 def test_render_frame_keeps_a_characters_color_from_frame_to_frame():
@@ -86,7 +96,7 @@ def test_render_frame_keeps_a_characters_color_from_frame_to_frame():
         if 9 not in _lit_positions(TEXT, step)
     ]
 
-    assert set(unlit) == {RAINBOW[9 % len(RAINBOW)].base.foreground}
+    assert set(unlit) == {gradient(RAINBOW, len(TEXT))[9].base.foreground}
 
 
 def test_render_frame_lights_three_characters_at_once():
@@ -164,7 +174,7 @@ def test_render_frame_leaves_whitespace_uncolored_but_keeps_its_position():
     assert _painted("a b", 3) == [
         RAINBOW[0].base.foreground,
         "",
-        RAINBOW[2].lit.foreground,
+        RAINBOW[6].lit.foreground,
     ]
 
 

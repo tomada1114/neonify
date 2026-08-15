@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Final
 
-from .palette import RAINBOW, RESET
+from .palette import RAINBOW, RESET, gradient
 
 if TYPE_CHECKING:
     from .palette import Hue
@@ -22,8 +22,8 @@ class GlowStyle:
     """How the shine travels across the characters of a string.
 
     Attributes:
-        palette: The colours the characters are painted in, handed out by
-            position and starting over once the palette runs out.
+        palette: The colours the characters are painted in, stretched across
+            the string so its ends take the ends of the palette.
         is_reversed: Sweep the shine right to left instead of left to right.
     """
 
@@ -56,9 +56,12 @@ def _cycle_length(text_length: int) -> int:
 def render_frame(text: str, step: int, style: GlowStyle | None = None) -> str:
     """Return *text* with the ANSI colours of a single frame applied.
 
-    Each character keeps one colour of the palette for the whole animation;
-    what moves is the shine, a band of ``SHINE_WIDTH`` characters that advances
-    one position per frame and lights whatever it covers.
+    Each character keeps one colour for the whole animation, taken from the
+    palette stretched across the string: the first character gets the first
+    entry, the last gets the last, and the positions between are blended from
+    the two entries they fall between. What moves is the shine, a band of
+    ``SHINE_WIDTH`` characters that advances one position per frame and lights
+    whatever it covers.
 
     Whitespace is emitted uncoloured — painting it would be invisible anyway —
     but it still occupies a position, so the shine keeps travelling at an even
@@ -81,13 +84,14 @@ def render_frame(text: str, step: int, style: GlowStyle | None = None) -> str:
     style = style if style is not None else GlowStyle()
     lead = step % _cycle_length(len(text))
     last = len(text) - 1
+    hues = gradient(style.palette, len(text))
     parts: list[str] = []
     has_color = False
     for position, character in enumerate(text):
         if character.isspace():
             parts.append(character)
             continue
-        hue = style.palette[position % len(style.palette)]
+        hue = hues[position]
         travelled = last - position if style.is_reversed else position
         is_lit = 0 <= lead - travelled < SHINE_WIDTH
         parts.append(f"{(hue.lit if is_lit else hue.base).foreground}{character}")
