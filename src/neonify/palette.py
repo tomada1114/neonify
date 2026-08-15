@@ -8,12 +8,19 @@ single lightening rule reproduces them — mixing towards white in sRGB, in
 linear light, in HSL and in Oklab each leave at least one channel thirteen steps
 out of 255 adrift, however the mix is weighted. ``docs/measurements.md`` has the
 fits.
+
+The measured colours are anchors rather than a sequence that repeats:
+``gradient`` spans them across a string of any length, blending between
+neighbouring entries for the positions that fall between them.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Final
+from typing import TYPE_CHECKING, Final
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
 
 RESET: Final = "\x1b[0m"
 """Escape sequence that clears every active text attribute."""
@@ -90,3 +97,66 @@ RAINBOW: Final[tuple[Hue, ...]] = (
     Hue(Color(193, 119, 171), Color(226, 171, 203)),  # hue 318
 )
 """The seven colours the reference gives to consecutive characters, in order."""
+
+
+def _blend(start: Color, end: Color, ratio: float) -> Color:
+    """Return the colour *ratio* of the way from *start* to *end*.
+
+    The mix is a straight sRGB one. It only ever runs between two neighbouring
+    entries of a palette, which sit close enough in hue that the detours a
+    linear-light or Oklab mix would avoid are not there to avoid.
+    """
+    return Color(
+        round(start.red + (end.red - start.red) * ratio),
+        round(start.green + (end.green - start.green) * ratio),
+        round(start.blue + (end.blue - start.blue) * ratio),
+    )
+
+
+def _hue_at(palette: Sequence[Hue], spot: float) -> Hue:
+    """Return the hue *spot* of the way along *palette*, indexed by entry.
+
+    A spot landing between two entries blends both of their brightnesses by the
+    same ratio, so the shine stays as continuous across the string as the
+    resting colours do.
+    """
+    index = min(int(spot), len(palette) - 2)
+    ratio = spot - index
+    start, end = palette[index], palette[index + 1]
+    return Hue(
+        base=_blend(start.base, end.base, ratio),
+        lit=_blend(start.lit, end.lit, ratio),
+    )
+
+
+def gradient(palette: Sequence[Hue], length: int) -> tuple[Hue, ...]:
+    """Return *length* hues spanning *palette* from its first entry to its last.
+
+    The palette is stretched over the positions rather than handed out one
+    entry per position and started over: the ends of the string always get the
+    ends of the palette, and everything in between is spaced evenly along it.
+    A string shorter than the palette therefore skips entries, and a longer one
+    fills the gaps with blends of the two entries each position falls between.
+
+    Args:
+        palette: The colours to span, in order.
+        length: How many positions to cover.
+
+    Returns:
+        One hue per position, first to last.
+
+    Raises:
+        ValueError: If *palette* is empty or *length* is negative.
+    """
+    if not palette:
+        msg = "A gradient needs at least one colour."
+        raise ValueError(msg)
+    if length < 0:
+        msg = f"A gradient length cannot be negative, got {length}."
+        raise ValueError(msg)
+    last = len(palette) - 1
+    if last == 0 or length <= 1:
+        return (palette[0],) * length
+    return tuple(
+        _hue_at(palette, position * last / (length - 1)) for position in range(length)
+    )

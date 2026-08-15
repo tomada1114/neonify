@@ -10,13 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - `neonify` command that sweeps a shine across a string whose characters each
-  hold one colour of a seven-colour palette, repainting one line in place until
-  interrupted. The text defaults to `ultrathink`.
+  hold one colour, repainting one line in place until interrupted. The text
+  defaults to `ultrathink`.
+- A seven-colour palette stretched across the string rather than repeated, so
+  the ends always take the red and the violet and the characters between are
+  blended from the entries they fall between, however long the text.
 - `--interval`, `--reverse` and `--once` options. A single mid-sweep frame is
   printed instead of animating when stdout is not a terminal or the text is
   wider than the terminal, and `NO_COLOR` prints the bare text.
-- Public API: `render_frame`, `animate`, `AnimationConfig`, `GlowStyle`,
-  `Color`, `Hue`, the `RAINBOW` palette, and the `SHINE_WIDTH` and
+- Public API: `render_frame`, `animate`, `gradient`, `AnimationConfig`,
+  `GlowStyle`, `Color`, `Hue`, the `RAINBOW` palette, and the `SHINE_WIDTH` and
   `REST_FRAMES` constants that shape the sweep.
 
 [Unreleased]: https://github.com/tomada1114/neonify/commits/main

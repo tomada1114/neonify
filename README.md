@@ -22,10 +22,14 @@ neonify "hello world" -i 30 -r       # any string, faster, sweeping the other wa
 
 ## How it works
 
-`neonify` hands every character a colour from a seven-colour palette by position
-and leaves it there. What moves is the shine: a band three characters wide that
-advances one character per frame, lighting whatever it covers. Once it has left
-the string the text rests for 18 frames before the next shine enters.
+`neonify` stretches a seven-colour palette across the string and leaves it
+there: the first character takes the red at one end of the palette, the last
+takes the violet at the other, and every character between is blended from the
+two palette entries its position falls between — so the rainbow always runs end
+to end, however long the text. What moves is the shine: a band three characters
+wide that advances one character per frame, lighting whatever it covers. Once
+it has left the string the text rests for 18 frames before the next shine
+enters.
 
 The palette — both the resting colours and the lit ones — the width of the
 shine, and the default 50 ms frame interval were all measured off a reference
@@ -75,6 +79,17 @@ from neonify import Color, GlowStyle, Hue, render_frame
 
 ice = GlowStyle(palette=(Hue(base=Color(90, 150, 200), lit=Color(190, 225, 245)),))
 render_frame("ultrathink", 0, ice)
+```
+
+A custom palette is stretched the same way the default one is: two entries make
+a two-colour gradient, one makes a single colour. `gradient` exposes that
+stretch on its own, in case you want the colours a string would be painted in
+without rendering a frame:
+
+```python
+from neonify import RAINBOW, gradient
+
+gradient(RAINBOW, len("ultrathink"))  # ten hues, red at one end, violet at the other
 ```
 
 ## Limitations

@@ -2,9 +2,13 @@ from __future__ import annotations
 
 import pytest
 
-from neonify import RAINBOW, Color, Hue
+from neonify import RAINBOW, Color, Hue, gradient
 
 PALETTE_SIZE = 7
+
+DARK = Hue(base=Color(0, 0, 0), lit=Color(10, 10, 10))
+BRIGHT = Hue(base=Color(100, 200, 40), lit=Color(150, 250, 90))
+TWO_TONE = (DARK, BRIGHT)
 
 
 def _lightness(color: Color) -> float:
@@ -68,3 +72,61 @@ def test_rainbow_has_seven_distinct_hues():
 def test_rainbow_lit_colors_are_lighter_than_the_ones_they_replace():
     """The shine has to read as a shine on every hue, not just the bright ones."""
     assert all(_lightness(hue.lit) > _lightness(hue.base) for hue in RAINBOW)
+
+
+def test_gradient_ends_on_the_first_and_last_palette_colors():
+    """Whatever the length, the red and the violet stay pinned to the ends."""
+    stretched = gradient(RAINBOW, 40)
+
+    assert stretched[0] == RAINBOW[0]
+    assert stretched[-1] == RAINBOW[-1]
+
+
+def test_gradient_returns_one_hue_per_position():
+    assert len(gradient(RAINBOW, 40)) == 40
+
+
+def test_gradient_reproduces_the_palette_when_the_lengths_line_up():
+    assert gradient(RAINBOW, PALETTE_SIZE) == RAINBOW
+
+
+def test_gradient_blends_the_hues_a_position_falls_between():
+    """Halfway between two entries is the average of both their brightnesses."""
+    assert gradient(TWO_TONE, 3)[1] == Hue(
+        base=Color(50, 100, 20), lit=Color(80, 130, 50)
+    )
+
+
+@pytest.mark.parametrize(
+    ("position", "expected"),
+    [
+        pytest.param(1, Color(25, 50, 10), id="quarter"),
+        pytest.param(2, Color(50, 100, 20), id="half"),
+        pytest.param(3, Color(75, 150, 30), id="three-quarters"),
+    ],
+)
+def test_gradient_moves_evenly_from_one_end_to_the_other(position, expected):
+    assert gradient(TWO_TONE, 5)[position].base == expected
+
+
+def test_gradient_gives_a_lone_character_the_first_color():
+    """One character cannot span the palette; it takes the end it starts from."""
+    assert gradient(RAINBOW, 1) == (RAINBOW[0],)
+
+
+def test_gradient_of_no_positions_is_empty():
+    assert gradient(RAINBOW, 0) == ()
+
+
+def test_gradient_of_a_single_color_palette_paints_every_position_alike():
+    assert gradient((DARK,), 4) == (DARK,) * 4
+
+
+def test_gradient_rejects_an_empty_palette():
+    with pytest.raises(ValueError, match="at least one colour"):
+        gradient((), 4)
+
+
+def test_gradient_rejects_a_negative_length():
+    with pytest.raises(ValueError, match="cannot be negative"):
+        gradient(RAINBOW, -1)
