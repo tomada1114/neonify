@@ -2,8 +2,9 @@
 
 ## Overview
 
-This is a Python library built with [uv](https://docs.astral.sh/uv/) and
-[hatchling](https://hatch.pypa.io/). It uses a strict `src/` layout with
+`neonify` is a terminal toy: it animates a flowing rainbow across a string by
+repainting one line in place. It is built with [uv](https://docs.astral.sh/uv/)
+and [hatchling](https://hatch.pypa.io/), using a strict `src/` layout with
 comprehensive type checking and linting.
 
 ## Quick Reference
@@ -28,13 +29,23 @@ in the `justfile`. Run a single test with
 ## Architecture
 
 ```
-src/my_package/
-├── __init__.py   # Public API — export everything users need here
-├── py.typed      # PEP 561 marker for typed package
-└── core.py       # Placeholder module — replace and re-export via __init__.py
+src/neonify/
+├── __init__.py    # Public API — export everything users need here
+├── py.typed       # PEP 561 marker for typed package
+├── palette.py     # The seven-colour palette and its 24-bit ANSI encoding
+├── animation.py   # Pure frame composition: which character is which colour
+├── renderer.py    # The render loop and its terminal side effects
+└── cli.py         # The `neonify` command
 ```
 
+The layers run one way: `cli` → `renderer` → `animation` → `palette`. Keeping
+frame composition pure is what lets the tests cover the animation without a
+clock or a terminal; `renderer` takes its stream and its `sleep` by injection
+for the same reason.
+
 - Keep the public API surface small — export via `__init__.py.__all__`
+- `cli.py` imports `__version__` from the package, so `__init__.py` must never
+  import `cli` back
 - Internal modules can use a leading underscore (`_internal.py`)
 - Separate concerns: one module per logical unit
 - Update `docs/reference.md` and README examples whenever you change the public API
