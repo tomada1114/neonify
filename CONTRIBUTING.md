@@ -119,8 +119,8 @@ must match the workflow, or PyPI rejects the token exchange:
 
 | Field | Value |
 | --- | --- |
-| Owner | `your-username` |
-| Repository name | `my-package` |
+| Owner | `tomada1114` |
+| Repository name | `neonify` |
 | Workflow name | `release.yml` |
 | Environment name | `release` |
 
@@ -152,7 +152,7 @@ release ever needs a manual approval gate.
 
    ```bash
    git checkout main && git pull
-   git tag -a v0.1.0 -m "my-package 0.1.0"
+   git tag -a v0.1.0 -m "neonify 0.1.0"
    git push origin v0.1.0
    ```
 
@@ -163,7 +163,7 @@ release ever needs a manual approval gate.
 
    ```bash
    cd "$(mktemp -d)"
-   uvx --with my-package python -c "import my_package; print(my_package.__version__)"
+   uvx --with neonify python -c "import neonify; print(neonify.__version__)"
    ```
 
 If the run fails, fix the problem and re-run the workflow against the same tag

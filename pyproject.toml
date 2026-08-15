@@ -3,31 +3,36 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "my-package"
+name = "neonify"
 version = "0.1.0"
-description = "A short description of the project."
+description = "Make any string glow with a flowing rainbow in your terminal."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"
 license-files = ["LICENSE"]
-authors = [{ name = "Your Name", email = "you@example.com" }]
-keywords = []
+authors = [{ name = "tomada", email = "tmasuyama1114@gmail.com" }]
+keywords = ["ansi", "cli", "color", "rainbow", "terminal"]
 classifiers = [
     "Development Status :: 3 - Alpha",
+    "Environment :: Console",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+    "Topic :: Terminals",
     "Typing :: Typed",
 ]
 
+[project.scripts]
+neonify = "neonify.cli:main"
+
 [project.urls]
-Homepage = "https://github.com/your-username/my-package"
-Documentation = "https://your-username.github.io/my-package"
-Repository = "https://github.com/your-username/my-package"
-Issues = "https://github.com/your-username/my-package/issues"
-Changelog = "https://github.com/your-username/my-package/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/tomada1114/neonify"
+Documentation = "https://tomada1114.github.io/neonify"
+Repository = "https://github.com/tomada1114/neonify"
+Issues = "https://github.com/tomada1114/neonify/issues"
+Changelog = "https://github.com/tomada1114/neonify/blob/main/CHANGELOG.md"
 
 [dependency-groups]
 dev = ["mypy>=2.3.0", "pre-commit>=4.6.0", "pytest>=8.0", "pytest-cov>=7.1.0", "ruff>=0.15.22"]
@@ -38,14 +43,14 @@ docs = ["mkdocs-material>=9.7.6", "mkdocstrings[python]>=1.0.6"]
 # --------------------------------------------------------------------------- #
 
 [tool.uv]
-exclude-newer = "2026-07-21T00:00:00Z"
+exclude-newer = "2026-08-01T00:00:00Z"
 
 # --------------------------------------------------------------------------- #
 #  Build
 # --------------------------------------------------------------------------- #
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/my_package"]
+packages = ["src/neonify"]
 
 # --------------------------------------------------------------------------- #
 #  Ruff – linter & formatter

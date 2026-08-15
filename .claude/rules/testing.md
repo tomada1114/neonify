@@ -15,7 +15,7 @@ paths:
 ## What to Test
 
 - Test *behavior and contracts*, not implementation details
-- Test through the public API (`from my_package import ...`), never internal modules or private helpers directly
+- Test through the public API (`from neonify import ...`), never internal modules or private helpers directly
 - Always test the happy path AND the error path for every public function
 
 ## Edge Cases (always consider these)

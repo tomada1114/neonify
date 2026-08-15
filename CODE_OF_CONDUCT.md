@@ -47,7 +47,7 @@ an individual is officially representing the community in public spaces.
 ## Enforcement
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be
-reported privately by email to <you@example.com>.
+reported privately by email to <tmasuyama1114@gmail.com>.
 
 All complaints will be reviewed and investigated fairly, and the reporter's
 privacy will be respected.
