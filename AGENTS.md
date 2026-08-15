@@ -2,10 +2,11 @@
 
 ## Overview
 
-`neonify` is a terminal toy: every character of a string keeps one colour of a
-seven-colour palette, and a three-character shine sweeps across them, repainting
-one line in place. It is built with [uv](https://docs.astral.sh/uv/)
-and [hatchling](https://hatch.pypa.io/), using a strict `src/` layout with
+`neonify` is a terminal toy: a seven-colour palette is stretched across the
+string so every character keeps one colour of it, and a three-character shine
+sweeps across them, repainting one line in place. It is built with
+[uv](https://docs.astral.sh/uv/) and [hatchling](https://hatch.pypa.io/),
+using a strict `src/` layout with
 comprehensive type checking and linting.
 
 ## Quick Reference
