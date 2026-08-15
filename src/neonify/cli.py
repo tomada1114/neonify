@@ -10,7 +10,7 @@ import unicodedata
 from typing import TYPE_CHECKING
 
 from . import __version__
-from .animation import GlowStyle, render_frame
+from .animation import SHINE_WIDTH, GlowStyle, render_frame
 from .renderer import DEFAULT_INTERVAL_MS, AnimationConfig, animate
 
 if TYPE_CHECKING:
@@ -30,6 +30,17 @@ def _display_width(text: str) -> int:
         2 if unicodedata.east_asian_width(character) in WIDE_EAST_ASIAN_CLASSES else 1
         for character in text
     )
+
+
+def _showcase_step(text: str) -> int:
+    """Return the step whose shine sits over the middle of *text*.
+
+    Step zero only has the leading edge of the band on the string, so a lone
+    frame taken there lights a single character and reads as the resting
+    palette. Every path that prints one frame instead of animating uses this
+    step instead, so the one thing it gets to show is the shine.
+    """
+    return max(0, min(len(text) - 1, len(text) // 2 + SHINE_WIDTH))
 
 
 def _unanimatable_reason(text: str) -> str | None:
@@ -90,7 +101,8 @@ def main(argv: Sequence[str] | None = None) -> int:
     """Run the ``neonify`` command.
 
     Animating only makes sense on a terminal that stays put, so a redirected
-    stdout gets a single coloured frame and ``NO_COLOR`` gets the bare text.
+    stdout gets a single coloured frame — taken mid-shine, since that is the
+    one frame there is — and ``NO_COLOR`` gets the bare text.
     Text that cannot stay on one line — because it is wider than the terminal,
     or because it contains a line break — is treated the same way: repainting
     in place cannot reach a line that has scrolled.
@@ -112,7 +124,7 @@ def main(argv: Sequence[str] | None = None) -> int:
         return 0
 
     style = GlowStyle(is_reversed=args.reverse)
-    single_frame = f"{render_frame(args.text, 0, style)}\n"
+    single_frame = f"{render_frame(args.text, _showcase_step(args.text), style)}\n"
     if args.once or not stream.isatty():
         stream.write(single_frame)
         return 0

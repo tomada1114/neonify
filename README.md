@@ -49,7 +49,8 @@ the cursor is always restored when you stop it. Each frame is scheduled against
 a deadline, so the time spent drawing does not stretch the interval.
 
 When stdout is not a terminal — or the text is wider than the terminal —
-`neonify` prints a single coloured frame instead of animating, and it honours
+`neonify` prints a single coloured frame instead of animating, taken from the
+middle of the sweep so the shine is on the string, and it honours
 [`NO_COLOR`](https://no-color.org/) by printing the bare text.
 
 ## Python API
