@@ -6,7 +6,7 @@ import sys
 import pytest
 
 from neonify import render_frame
-from neonify.cli import main
+from neonify.cli import DEFAULT_TEXT, main
 
 HIDE_CURSOR = "\x1b[?25l"
 SHOW_CURSOR = "\x1b[?25h"
@@ -48,20 +48,25 @@ def test_main_version_reports_the_package_version(capsys):
 
 
 def test_main_prints_a_single_frame_when_stdout_is_not_a_terminal(capsys):
-    assert main(["max"]) == 0
-    assert capsys.readouterr().out == f"{render_frame('max', 0)}\n"
+    assert main(["ultrathink"]) == 0
+    assert capsys.readouterr().out == f"{render_frame('ultrathink', 0)}\n"
 
 
 def test_main_once_prints_a_single_frame(capsys):
-    assert main(["--once", "max"]) == 0
-    assert capsys.readouterr().out == f"{render_frame('max', 0)}\n"
+    assert main(["--once", "ultrathink"]) == 0
+    assert capsys.readouterr().out == f"{render_frame('ultrathink', 0)}\n"
+
+
+def test_main_without_text_falls_back_to_the_default_string(capsys):
+    assert main(["--once"]) == 0
+    assert capsys.readouterr().out == f"{render_frame(DEFAULT_TEXT, 0)}\n"
 
 
 def test_main_no_color_prints_plain_text(capsys, monkeypatch):
     monkeypatch.setenv("NO_COLOR", "1")
 
-    assert main(["max"]) == 0
-    assert capsys.readouterr().out == "max\n"
+    assert main(["ultrathink"]) == 0
+    assert capsys.readouterr().out == "ultrathink\n"
 
 
 def test_main_reverse_changes_the_direction(capsys):
@@ -76,7 +81,7 @@ def test_main_reverse_changes_the_direction(capsys):
 @pytest.mark.parametrize("interval", ["0", "-5"])
 def test_main_rejects_a_non_positive_interval(interval, capsys):
     with pytest.raises(SystemExit) as exit_info:
-        main(["--interval", interval, "max"])
+        main(["--interval", interval, "ultrathink"])
 
     assert exit_info.value.code == USAGE_ERROR
     assert "positive" in capsys.readouterr().err
@@ -91,7 +96,7 @@ def test_main_animates_when_stdout_is_a_terminal(
     monkeypatch.setattr(sys, "stdout", terminal)
     set_terminal_width(80)
 
-    assert main(["max"]) == 0
+    assert main(["ultrathink"]) == 0
     assert terminal.getvalue().endswith(f"{SHOW_CURSOR}\n")
 
 

@@ -1,10 +1,12 @@
-"""The rainbow palette and its 24-bit ANSI encoding.
+"""The palette the shine travels over, and its 24-bit ANSI encoding.
 
-The seven hues are taken verbatim from a frame-by-frame measurement of the
-reference recording. Saturation and value are normalised across the palette
-instead: the recording's chroma subsampling washed out the darker half of the
-wheel, so its measured saturation is a property of the capture rather than of
-the animation.
+Every colour here was measured pixel by pixel off the reference: the resting
+colours and three of the lit ones from lossless screenshots, the rest from the
+recording, corrected for the constant bias the codec showed on the colours that
+appear in both. The lit colours are stored rather than derived, because no
+single lightening rule reproduces them — mixing towards white in sRGB, in
+linear light, in HSL and in Oklab each leave at least one channel off by more
+than a tenth of its range.
 """
 
 from __future__ import annotations
@@ -64,13 +66,26 @@ class Color:
         return f"\x1b[38;2;{self.red};{self.green};{self.blue}m"
 
 
-RAINBOW: Final[tuple[Color, ...]] = (
-    Color(242, 85, 85),  # hue 0
-    Color(242, 132, 85),  # hue 18
-    Color(242, 182, 85),  # hue 37
-    Color(122, 242, 85),  # hue 106
-    Color(85, 148, 242),  # hue 216
-    Color(148, 85, 242),  # hue 264
-    Color(242, 85, 198),  # hue 317
+@dataclass(frozen=True, slots=True)
+class Hue:
+    """One entry of the palette, in the two brightnesses a character takes.
+
+    Attributes:
+        base: The colour the character rests at.
+        lit: The colour it takes while the shine is over it.
+    """
+
+    base: Color
+    lit: Color
+
+
+RAINBOW: Final[tuple[Hue, ...]] = (
+    Hue(Color(232, 85, 77), Color(250, 144, 136)),  # hue 3
+    Hue(Color(244, 128, 77), Color(254, 177, 126)),  # hue 18
+    Hue(Color(249, 187, 84), Color(253, 221, 142)),  # hue 37
+    Hue(Color(135, 192, 119), Color(176, 227, 171)),  # hue 107
+    Hue(Color(118, 160, 215), Color(173, 199, 235)),  # hue 214
+    Hue(Color(144, 119, 192), Color(186, 173, 226)),  # hue 260
+    Hue(Color(193, 119, 171), Color(226, 171, 203)),  # hue 318
 )
-"""The seven colours the reference animation cycles through, in order."""
+"""The seven colours the reference gives to consecutive characters, in order."""

@@ -16,6 +16,9 @@ from .renderer import DEFAULT_INTERVAL_MS, AnimationConfig, animate
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+DEFAULT_TEXT = "ultrathink"
+"""The string the reference animation shines across, and the default here."""
+
 WIDE_EAST_ASIAN_CLASSES = frozenset({"W", "F"})
 LINE_BREAKS = frozenset("\n\r\v\f\x1c\x1d\x1e\x85\u2028\u2029")
 """Every character ``str.splitlines`` treats as ending a line."""
@@ -47,10 +50,15 @@ def _build_parser() -> argparse.ArgumentParser:
     """Return the argument parser for the ``neonify`` command."""
     parser = argparse.ArgumentParser(
         prog="neonify",
-        description="Make any string glow with a flowing rainbow in your terminal.",
+        description="Make any string glow with a shine that sweeps across it.",
         epilog="Press Ctrl-C to stop the animation.",
     )
-    parser.add_argument("text", help="the string to make glow")
+    parser.add_argument(
+        "text",
+        nargs="?",
+        default=DEFAULT_TEXT,
+        help="the string to make glow (default: %(default)s)",
+    )
     parser.add_argument(
         "-i",
         "--interval",
@@ -63,7 +71,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "-r",
         "--reverse",
         action="store_true",
-        help="flow the colours left to right instead of right to left",
+        help="sweep the shine right to left instead of left to right",
     )
     parser.add_argument(
         "--once",
