@@ -1,5 +1,5 @@
 site_name: neonify
-site_description: Make any string glow with a flowing rainbow in your terminal.
+site_description: Make any string glow with a shine that sweeps across it in your terminal.
 site_url: https://tomada1114.github.io/neonify
 repo_url: https://github.com/tomada1114/neonify
 repo_name: tomada1114/neonify
@@ -59,4 +59,5 @@ markdown_extensions:
 nav:
   - Home: index.md
   - API Reference: reference.md
+  - Reference Measurements: measurements.md
   - Contributing: contributing.md

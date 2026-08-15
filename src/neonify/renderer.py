@@ -13,7 +13,7 @@ if TYPE_CHECKING:
     from collections.abc import Callable
     from typing import TextIO
 
-DEFAULT_INTERVAL_MS: Final = 95
+DEFAULT_INTERVAL_MS: Final = 50
 """Frame interval measured off the reference recording."""
 
 MS_PER_SECOND: Final = 1000
@@ -36,7 +36,7 @@ class AnimationConfig:
     """Everything the render loop needs besides the text itself.
 
     Attributes:
-        style: The palette and direction to animate with.
+        style: The palette and sweep direction to animate with.
         interval_ms: Milliseconds between frames.
         frame_limit: Stop after this many frames. ``None`` loops until
             interrupted.
@@ -69,7 +69,7 @@ class AnimationConfig:
 
 
 def animate(text: str, config: AnimationConfig | None = None) -> int:
-    """Loop the glow over *text* until interrupted or the frame limit is hit.
+    """Sweep the shine over *text* until interrupted or the frame limit is hit.
 
     The cursor is hidden for the duration and the line is repainted in place,
     so the animation never scrolls the terminal. The cursor is always restored
@@ -81,7 +81,7 @@ def animate(text: str, config: AnimationConfig | None = None) -> int:
     Args:
         text: The string to animate.
         config: Timing, styling and output settings. Defaults to the reference
-            95 ms rainbow on stdout.
+            50 ms rainbow on stdout.
 
     Returns:
         The number of frames written.

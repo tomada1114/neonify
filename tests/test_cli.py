@@ -5,12 +5,14 @@ import sys
 
 import pytest
 
-from neonify import render_frame
-from neonify.cli import main
+from neonify import RAINBOW, SHINE_WIDTH, render_frame
+from neonify.cli import DEFAULT_TEXT, main
 
 HIDE_CURSOR = "\x1b[?25l"
 SHOW_CURSOR = "\x1b[?25h"
 USAGE_ERROR = 2
+SHOWCASE_STEP = 8
+"""The step a lone frame is taken at for ``ultrathink``: the shine mid-string."""
 
 
 @pytest.fixture(autouse=True)
@@ -48,26 +50,50 @@ def test_main_version_reports_the_package_version(capsys):
 
 
 def test_main_prints_a_single_frame_when_stdout_is_not_a_terminal(capsys):
-    assert main(["max"]) == 0
-    assert capsys.readouterr().out == f"{render_frame('max', 0)}\n"
+    assert main(["ultrathink"]) == 0
+    assert capsys.readouterr().out == f"{render_frame('ultrathink', SHOWCASE_STEP)}\n"
 
 
 def test_main_once_prints_a_single_frame(capsys):
-    assert main(["--once", "max"]) == 0
-    assert capsys.readouterr().out == f"{render_frame('max', 0)}\n"
+    assert main(["--once", "ultrathink"]) == 0
+    assert capsys.readouterr().out == f"{render_frame('ultrathink', SHOWCASE_STEP)}\n"
+
+
+def test_main_without_text_falls_back_to_the_default_string(capsys):
+    assert main(["--once"]) == 0
+    assert capsys.readouterr().out == f"{render_frame(DEFAULT_TEXT, SHOWCASE_STEP)}\n"
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        pytest.param("a", id="shorter-than-the-shine"),
+        pytest.param("abc", id="exactly-the-shine"),
+        pytest.param("ultrathink", id="longer-than-the-shine"),
+    ],
+)
+def test_main_once_prints_a_frame_with_the_shine_on_the_string(text, capsys):
+    """The one frame a non-terminal gets has to show the shine, not the rest."""
+    assert main(["--once", text]) == 0
+    printed = capsys.readouterr().out
+    lit = sum(printed.count(hue.lit.foreground) for hue in RAINBOW)
+
+    assert lit == min(len(text), SHINE_WIDTH)
 
 
 def test_main_no_color_prints_plain_text(capsys, monkeypatch):
     monkeypatch.setenv("NO_COLOR", "1")
 
-    assert main(["max"]) == 0
-    assert capsys.readouterr().out == "max\n"
+    assert main(["ultrathink"]) == 0
+    assert capsys.readouterr().out == "ultrathink\n"
 
 
 def test_main_reverse_changes_the_direction(capsys):
-    main(["--once", "--reverse", "ab"])
+    # The text has to be longer than the shine is wide: on a shorter one the
+    # mid-sweep frame lights every character whichever way the shine travels.
+    main(["--once", "--reverse", "ultrathink"])
     reversed_output = capsys.readouterr().out
-    main(["--once", "ab"])
+    main(["--once", "ultrathink"])
     forward_output = capsys.readouterr().out
 
     assert reversed_output != forward_output
@@ -76,7 +102,7 @@ def test_main_reverse_changes_the_direction(capsys):
 @pytest.mark.parametrize("interval", ["0", "-5"])
 def test_main_rejects_a_non_positive_interval(interval, capsys):
     with pytest.raises(SystemExit) as exit_info:
-        main(["--interval", interval, "max"])
+        main(["--interval", interval, "ultrathink"])
 
     assert exit_info.value.code == USAGE_ERROR
     assert "positive" in capsys.readouterr().err
@@ -91,7 +117,7 @@ def test_main_animates_when_stdout_is_a_terminal(
     monkeypatch.setattr(sys, "stdout", terminal)
     set_terminal_width(80)
 
-    assert main(["max"]) == 0
+    assert main(["ultrathink"]) == 0
     assert terminal.getvalue().endswith(f"{SHOW_CURSOR}\n")
 
 

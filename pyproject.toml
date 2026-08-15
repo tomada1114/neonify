@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "neonify"
 version = "0.1.0"
-description = "Make any string glow with a flowing rainbow in your terminal."
+description = "Make any string glow with a shine that sweeps across it in your terminal."
 readme = "README.md"
 requires-python = ">=3.12"
 license = "MIT"

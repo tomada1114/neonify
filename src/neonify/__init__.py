@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from importlib.metadata import PackageNotFoundError, version
 
-from .animation import GlowStyle, render_frame
-from .palette import RAINBOW, Color
+from .animation import REST_FRAMES, SHINE_WIDTH, GlowStyle, render_frame
+from .palette import RAINBOW, Color, Hue
 from .renderer import DEFAULT_INTERVAL_MS, AnimationConfig, animate
 
 try:
@@ -16,9 +16,12 @@ except PackageNotFoundError:
 __all__ = [
     "DEFAULT_INTERVAL_MS",
     "RAINBOW",
+    "REST_FRAMES",
+    "SHINE_WIDTH",
     "AnimationConfig",
     "Color",
     "GlowStyle",
+    "Hue",
     "__version__",
     "animate",
     "render_frame",

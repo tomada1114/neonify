@@ -2,9 +2,15 @@ from __future__ import annotations
 
 import pytest
 
-from neonify import RAINBOW, Color
+from neonify import RAINBOW, Color, Hue
 
 PALETTE_SIZE = 7
+
+
+def _lightness(color: Color) -> float:
+    """The HSL lightness of *color*, on a 0-1 scale."""
+    channels = (color.red, color.green, color.blue)
+    return (max(channels) + min(channels)) / (2 * 255)
 
 
 def test_color_foreground_emits_a_truecolor_escape():
@@ -40,9 +46,25 @@ def test_color_accepts_the_range_boundaries(channels, expected):
 
 def test_color_is_immutable():
     with pytest.raises(AttributeError):
-        RAINBOW[0].red = 0  # type: ignore[misc]
+        RAINBOW[0].base.red = 0  # type: ignore[misc]
 
 
-def test_rainbow_has_seven_distinct_colors():
+def test_hue_is_immutable():
+    with pytest.raises(AttributeError):
+        RAINBOW[0].base = Color(0, 0, 0)  # type: ignore[misc]
+
+
+def test_hue_cannot_be_built_from_an_unrenderable_color():
+    """A hue has no validation of its own; `Color` refuses before it is reached."""
+    with pytest.raises(ValueError, match="Channel red must be an integer"):
+        Hue(base=Color(300, 0, 0), lit=Color(0, 0, 0))
+
+
+def test_rainbow_has_seven_distinct_hues():
     assert len(RAINBOW) == PALETTE_SIZE
     assert len(set(RAINBOW)) == PALETTE_SIZE
+
+
+def test_rainbow_lit_colors_are_lighter_than_the_ones_they_replace():
+    """The shine has to read as a shine on every hue, not just the bright ones."""
+    assert all(_lightness(hue.lit) > _lightness(hue.base) for hue in RAINBOW)

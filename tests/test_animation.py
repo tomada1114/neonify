@@ -1,46 +1,156 @@
 from __future__ import annotations
 
+import re
+
 import pytest
 
-from neonify import RAINBOW, Color, GlowStyle, render_frame
+from neonify import (
+    RAINBOW,
+    REST_FRAMES,
+    SHINE_WIDTH,
+    Color,
+    GlowStyle,
+    Hue,
+    render_frame,
+)
 
 RESET = "\x1b[0m"
+ESCAPE = re.compile(r"\x1b\[[0-9;]*m")
+TEXT = "ultrathink"
+REFERENCE_CYCLE = 30
+"""Frames one cycle takes for the reference string, measured off the recording."""
 
 
-def _paint(index: int) -> str:
-    return RAINBOW[index % len(RAINBOW)].foreground
+def _painted(text: str, step: int, style: GlowStyle | None = None) -> list[str]:
+    """The escape sequence each character of *text* is painted with.
+
+    Whitespace comes back as an empty string. Matching whole frames would tie
+    the tests to the exact byte layout; matching substrings would confuse two
+    characters that share a colour, which any string longer than the palette
+    has.
+    """
+    frame = render_frame(text, step, style)
+    colors: list[str] = []
+    index = 0
+    while index < len(frame):
+        match = ESCAPE.match(frame, index)
+        if match is None:
+            colors.append("")
+        else:
+            index = match.end()
+            if index == len(frame):
+                break  # the trailing reset paints no character
+            colors.append(match.group())
+        index += 1
+    return colors
 
 
-def test_render_frame_gives_neighbouring_characters_consecutive_colors():
-    assert render_frame("abc", 0) == f"{_paint(0)}a{_paint(1)}b{_paint(2)}c{RESET}"
+def _lit_positions(text: str, step: int, style: GlowStyle | None = None) -> list[int]:
+    """The positions painted in their lit colour on frame *step*."""
+    palette = (style if style is not None else GlowStyle()).palette
+    return [
+        position
+        for position, color in enumerate(_painted(text, step, style))
+        if color == palette[position % len(palette)].lit.foreground
+    ]
 
 
-def test_render_frame_advances_one_palette_step_per_frame():
-    assert render_frame("a", 1) == f"{_paint(1)}a{RESET}"
-    assert render_frame("a", 2) == f"{_paint(2)}a{RESET}"
+def _cycle(text: str) -> int:
+    return len(text) + SHINE_WIDTH - 1 + REST_FRAMES
 
 
-def test_render_frame_wraps_around_the_end_of_the_palette():
-    assert render_frame("a", len(RAINBOW)) == render_frame("a", 0)
+def _resting(text: str) -> int:
+    """A frame number on which the shine is off the string entirely."""
+    return _cycle(text) - 1
+
+
+def test_render_frame_gives_each_position_its_own_palette_color():
+    expected = [RAINBOW[index].base.foreground for index in range(3)]
+
+    assert _painted("abc", _resting("abc")) == expected
+
+
+def test_render_frame_repeats_the_palette_once_it_runs_out():
+    text = "a" * (len(RAINBOW) + 2)
+    painted = _painted(text, _resting(text))
+
+    assert painted[len(RAINBOW)] == painted[0]
+    assert painted[len(RAINBOW) + 1] == painted[1]
+
+
+def test_render_frame_keeps_a_characters_color_from_frame_to_frame():
+    """Only the shine moves, so an unlit character never changes colour."""
+    unlit = [
+        _painted(TEXT, step)[9]
+        for step in range(_cycle(TEXT))
+        if 9 not in _lit_positions(TEXT, step)
+    ]
+
+    assert set(unlit) == {RAINBOW[9 % len(RAINBOW)].base.foreground}
+
+
+def test_render_frame_lights_three_characters_at_once():
+    assert _lit_positions(TEXT, SHINE_WIDTH - 1) == [0, 1, 2]
+
+
+def test_render_frame_advances_the_shine_one_character_per_frame():
+    assert _lit_positions(TEXT, 5) == [3, 4, 5]
+    assert _lit_positions(TEXT, 6) == [4, 5, 6]
+
+
+def test_render_frame_leads_the_shine_in_from_the_left():
+    """The shine enters leading edge first, so frame zero lights one character."""
+    assert _lit_positions(TEXT, 0) == [0]
+
+
+def test_render_frame_trails_the_shine_out_to_the_right():
+    last = len(TEXT) - 1
+
+    assert _lit_positions(TEXT, last + SHINE_WIDTH - 1) == [last]
+
+
+def test_render_frame_rests_with_nothing_lit_once_the_shine_has_left():
+    swept = len(TEXT) + SHINE_WIDTH - 1
+    rests = [_lit_positions(TEXT, swept + rest) for rest in range(REST_FRAMES)]
+
+    assert rests == [[] for _ in range(REST_FRAMES)]
+
+
+def test_render_frame_matches_the_reference_cycle_for_the_reference_string():
+    assert _cycle(TEXT) == REFERENCE_CYCLE
+    assert render_frame(TEXT, REFERENCE_CYCLE) == render_frame(TEXT, 0)
 
 
 def test_render_frame_accepts_a_negative_step():
-    assert render_frame("a", -1) == f"{_paint(len(RAINBOW) - 1)}a{RESET}"
+    assert render_frame(TEXT, -_cycle(TEXT)) == render_frame(TEXT, 0)
 
 
-def test_render_frame_slides_colors_towards_the_start_of_the_string():
-    """A colour shown on the second character reappears on the first next frame."""
-    step = 3
-    travelling = _paint(step + 1)
-    assert f"{travelling}b" in render_frame("ab", step)
-    assert f"{travelling}a" in render_frame("ab", step + 1)
-
-
-def test_render_frame_reversed_slides_colors_towards_the_end_of_the_string():
-    travelling = _paint(3)
+def test_render_frame_reversed_leads_the_shine_in_from_the_right():
     style = GlowStyle(is_reversed=True)
-    assert f"{travelling}a" in render_frame("ab", 3, style)
-    assert f"{travelling}b" in render_frame("ab", 4, style)
+    last = len(TEXT) - 1
+
+    assert _lit_positions(TEXT, 0, style) == [last]
+    assert _lit_positions(TEXT, 1, style) == [last - 1, last]
+
+
+def test_render_frame_reversed_keeps_the_colors_where_they_are():
+    """Reversing sweeps the shine the other way; it does not reorder the palette."""
+    style = GlowStyle(is_reversed=True)
+
+    assert _painted("abc", _resting("abc"), style) == _painted("abc", _resting("abc"))
+
+
+def test_render_frame_single_character_is_lit_for_the_width_of_the_shine():
+    lit_steps = [step for step in range(_cycle("a")) if _lit_positions("a", step)]
+
+    assert lit_steps == list(range(SHINE_WIDTH))
+
+
+def test_render_frame_long_text_keeps_the_shine_three_characters_wide():
+    text = "a" * 200
+    lead = 100
+
+    assert _lit_positions(text, lead) == [lead - 2, lead - 1, lead]
 
 
 def test_render_frame_empty_text_returns_an_empty_string():
@@ -48,7 +158,14 @@ def test_render_frame_empty_text_returns_an_empty_string():
 
 
 def test_render_frame_leaves_whitespace_uncolored_but_keeps_its_position():
-    assert render_frame("a b", 0) == f"{_paint(0)}a {_paint(2)}b{RESET}"
+    """A space costs the shine a frame, so words either side stay in step."""
+    # On frame 3 the shine covers positions 1 to 3: the space has already taken
+    # its turn, and "b" is lit as the third position rather than the second.
+    assert _painted("a b", 3) == [
+        RAINBOW[0].base.foreground,
+        "",
+        RAINBOW[2].lit.foreground,
+    ]
 
 
 def test_render_frame_all_whitespace_emits_no_escape_sequences():
@@ -56,10 +173,12 @@ def test_render_frame_all_whitespace_emits_no_escape_sequences():
 
 
 def test_render_frame_uses_a_custom_palette():
-    only = Color(1, 2, 3)
+    only = Hue(base=Color(1, 2, 3), lit=Color(4, 5, 6))
     style = GlowStyle(palette=(only,))
+
     assert (
-        render_frame("ab", 5, style) == f"{only.foreground}a{only.foreground}b{RESET}"
+        render_frame("ab", 0, style)
+        == f"{only.lit.foreground}a{only.base.foreground}b{RESET}"
     )
 
 

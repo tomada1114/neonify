@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/neonify)](https://pypi.org/project/neonify/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Make any string glow with a flowing rainbow in your terminal.
+Make any string glow with a shine that sweeps across it in your terminal.
 
 ## Quickstart
 
@@ -16,22 +16,32 @@ pip install neonify
 ```
 
 ```bash
-neonify max                          # animates in place until you press Ctrl-C
-neonify "hello world" -i 60 -r       # faster, flowing the other way
+neonify                              # animates "ultrathink" until you press Ctrl-C
+neonify "hello world" -i 30 -r       # any string, faster, sweeping the other way
 ```
 
 ## How it works
 
-`neonify` cycles a seven-colour palette across the characters of a string.
-Neighbouring characters sit one colour apart, and every frame advances the whole
-string by one step — so each colour appears to travel from right to left. The
-palette and the default 95 ms frame interval were measured frame by frame off a
-reference recording.
+`neonify` hands every character a colour from a seven-colour palette by position
+and leaves it there. What moves is the shine: a band three characters wide that
+advances one character per frame, lighting whatever it covers. Once it has left
+the string the text rests for 18 frames before the next shine enters.
+
+The palette — both the resting colours and the lit ones — the width of the
+shine, and the default 50 ms frame interval were all measured off a reference
+recording, in which `ultrathink` completes a cycle in 30 frames, or 1.5 seconds.
+[Reference Measurements](https://tomada1114.github.io/neonify/measurements/)
+records those measurements and how they were taken.
+
+Only the sweep scales with the text, since the rest is a fixed number of frames.
+A short string therefore flashes and waits, and a long one gets a shine that
+takes proportionally longer to cross.
 
 | Option | Default | What it does |
 | --- | --- | --- |
-| `-i`, `--interval MS` | `95` | Milliseconds between frames |
-| `-r`, `--reverse` | off | Flow the colours left to right instead |
+| `text` | `ultrathink` | The string to make glow |
+| `-i`, `--interval MS` | `50` | Milliseconds between frames |
+| `-r`, `--reverse` | off | Sweep the shine right to left instead |
 | `--once` | off | Print a single frame and exit |
 
 The animation repaints one line in place, so it never scrolls the terminal, and
@@ -39,7 +49,8 @@ the cursor is always restored when you stop it. Each frame is scheduled against
 a deadline, so the time spent drawing does not stretch the interval.
 
 When stdout is not a terminal — or the text is wider than the terminal —
-`neonify` prints a single coloured frame instead of animating, and it honours
+`neonify` prints a single coloured frame instead of animating, taken from the
+middle of the sweep so the shine is on the string, and it honours
 [`NO_COLOR`](https://no-color.org/) by printing the bare text.
 
 ## Python API
@@ -47,10 +58,23 @@ When stdout is not a terminal — or the text is wider than the terminal —
 ```python
 from neonify import AnimationConfig, GlowStyle, animate, render_frame
 
-render_frame("max", 0)  # a single frame as an ANSI-coloured string
+render_frame("ultrathink", 0)  # a single frame as an ANSI-coloured string
 
-animate("max", AnimationConfig(interval_ms=60))  # loops until interrupted
-animate("max", AnimationConfig(style=GlowStyle(is_reversed=True), frame_limit=10))
+animate("ultrathink", AnimationConfig(interval_ms=30))  # loops until interrupted
+animate(
+    "ultrathink",
+    AnimationConfig(style=GlowStyle(is_reversed=True), frame_limit=10),
+)
+```
+
+A palette entry is a `Hue`, pairing the colour a character rests at with the one
+it takes under the shine, so a custom palette supplies both:
+
+```python
+from neonify import Color, GlowStyle, Hue, render_frame
+
+ice = GlowStyle(palette=(Hue(base=Color(90, 150, 200), lit=Color(190, 225, 245)),))
+render_frame("ultrathink", 0, ice)
 ```
 
 ## Limitations
@@ -86,6 +110,8 @@ confirm the distribution imports from the wheel, not from `src/`.
 ## Documentation
 
 - [API Reference](https://tomada1114.github.io/neonify/reference/)
+- [Reference Measurements](https://tomada1114.github.io/neonify/measurements/) —
+  where the palette, the shine and the timings came from
 
 ## License
 
