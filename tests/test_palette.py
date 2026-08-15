@@ -54,8 +54,8 @@ def test_hue_is_immutable():
         RAINBOW[0].base = Color(0, 0, 0)  # type: ignore[misc]
 
 
-def test_hue_rejects_a_channel_that_is_not_an_8bit_integer():
-    """A hue is only as valid as the colours it is built from."""
+def test_hue_cannot_be_built_from_an_unrenderable_color():
+    """A hue has no validation of its own; `Color` refuses before it is reached."""
     with pytest.raises(ValueError, match="Channel red must be an integer"):
         Hue(base=Color(300, 0, 0), lit=Color(0, 0, 0))
 
