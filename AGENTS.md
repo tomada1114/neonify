@@ -2,8 +2,9 @@
 
 ## Overview
 
-`neonify` is a terminal toy: it animates a flowing rainbow across a string by
-repainting one line in place. It is built with [uv](https://docs.astral.sh/uv/)
+`neonify` is a terminal toy: every character of a string keeps one colour of a
+seven-colour palette, and a three-character shine sweeps across them, repainting
+one line in place. It is built with [uv](https://docs.astral.sh/uv/)
 and [hatchling](https://hatch.pypa.io/), using a strict `src/` layout with
 comprehensive type checking and linting.
 

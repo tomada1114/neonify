@@ -64,6 +64,10 @@ def render_frame(text: str, step: int, style: GlowStyle | None = None) -> str:
     but it still occupies a position, so the shine keeps travelling at an even
     rate across words.
 
+    One cycle takes ``len(text) + SHINE_WIDTH - 1 + REST_FRAMES`` frames, which
+    is the period *step* wraps over, and the ``frame_limit`` that renders
+    exactly one of them.
+
     Args:
         text: The string to colour.
         step: The frame number. Any integer; it wraps over the cycle.
