@@ -16,3 +16,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the terminal, and `NO_COLOR` prints the bare text.
 - Public API: `render_frame`, `animate`, `AnimationConfig`, `GlowStyle`,
   `Color` and the `RAINBOW` palette.
+
+[Unreleased]: https://github.com/tomada1114/neonify/commits/main

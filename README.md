@@ -55,9 +55,9 @@ animate("max", AnimationConfig(style=GlowStyle(is_reversed=True), frame_limit=10
 
 ## Limitations
 
-- The text has to fit on one line. Anything wider than the terminal is printed
-  as a single frame instead — repainting in place cannot reach a line that has
-  already wrapped.
+- The text has to fit on one line. Anything wider than the terminal, or
+  containing a line break, is printed as a single frame instead — repainting in
+  place cannot reach a line that has already wrapped or scrolled.
 - 24-bit colour is required. Terminals without truecolor support show
   approximated colours, or none at all.
 - Colours are assigned per code point, not per grapheme cluster. Plain text —
@@ -77,8 +77,7 @@ just check
 ```
 
 `just install` installs pre-commit hooks automatically when the project lives in
-a Git repository and skips that step for "Use this template" bootstrap copies
-before Git is initialized.
+a Git repository, and skips that step otherwise.
 
 For packaging verification, run `just smoke` (or `uv build && uv run python scripts/smoke_test.py`)
 to install the freshly built wheel into a temporary virtual environment and
