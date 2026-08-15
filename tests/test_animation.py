@@ -80,7 +80,7 @@ def test_render_frame_stretches_a_short_string_over_the_whole_palette():
     assert _painted("abc", _resting("abc")) == expected
 
 
-def test_render_frame_no_longer_starts_the_palette_over():
+def test_render_frame_gives_a_long_string_a_distinct_color_per_position():
     """A string longer than the palette gets intermediate colours, not repeats."""
     text = "a" * (len(RAINBOW) + 2)
     painted = _painted(text, _resting(text))
